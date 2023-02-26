@@ -98,9 +98,11 @@ int main()
   pthread_create(&network_thread, NULL, network_thread_f, NULL);
 
   /* Look for and handle keypresses */
-  int rownum = 22;
+  int rownum = 21;
   int colnum = 0;
-  char message_to_send[48];
+  char message_to_send[128];
+  int charIdex = 0;
+  char acsii;
   for (;;) {
     fbputchar('_',rownum, colnum);
     libusb_interrupt_transfer(keyboard, endpoint_address,
@@ -110,20 +112,25 @@ int main()
       sprintf(keystate, "%02x %02x %02x", packet.modifiers, packet.keycode[0],
 	      packet.keycode[1]);
       printf("%s\n", keystate);
-      // if(packet.keycode[0] == 40){
-      //   send(sockfd,message_to_send,strlen(message_to_send),0);
-      //   message_to_send[0] = '\0';
-      //   rownum = 22;
-      //   colnum = 0;
-      // }
+      if(packet.keycode[0] == 40){
+        write(sockfd,message_to_send,strlen(message_to_send));
+        message_to_send[0] = '\0';
+        rownum = 22;
+        colnum = 0;
+        charIdex = 0;
+      }
 
 
       fbputs(keystate, 6, 0);
-      convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
-      colnum+=1;
-      if(colnum == 64){
-        colnum = 0;
-        rownum = 23;
+      if (packet.keycode[0] != 0 || packet.keycode[1]!=0 || packet.modifiers != 0){
+        acsii = convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
+        colnum+=1;
+        message_to_send[charIdex] = acsii;
+        charIdex+=1;
+        if(colnum == 64){
+          colnum = 0;
+          rownum = 22;
+        }
       }
       if (packet.keycode[0] == 0x29) { /* ESC pressed? */
 	      break;
@@ -156,7 +163,7 @@ void *network_thread_f(void *ignored)
   return NULL;
 }
 
-void convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row, int col){
+int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row, int col){
     char c;
     
     if(keycode0 >= 4 && keycode0 <= 29){
@@ -207,7 +214,7 @@ void convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row
     }
     fbputchar(c,row,col);
 
-    
+    return c;
 
 }
 

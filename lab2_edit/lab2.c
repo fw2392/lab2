@@ -38,7 +38,7 @@ uint8_t endpoint_address;
 
 pthread_t network_thread;
 void *network_thread_f(void *);
-void convert_to_ascii(uint8_t, uint8_t, uint8_t, int, int);
+int convert_to_ascii(uint8_t, uint8_t, uint8_t, int, int);
 int main()
 {
   int err, col;

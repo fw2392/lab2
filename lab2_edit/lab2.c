@@ -117,11 +117,10 @@ int main()
 	      packet.keycode[1]);
       printf("%s\n", keystate);
       if(packet.keycode[0] == 0x28){
-        if(part_Idex != backIdex){
-          for(backIdex; backIdex < part_Idex; backIdex++){
-            message_to_send[charIdex] = part_message[backIdex];
-            charIdex+=1;
-          }
+        while(backIdex < part_Idex){
+          message_to_send[charIdex] = part_message[backIdex];
+          charIdex+=1;
+          backIdex+=1;
         }
         printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
@@ -169,7 +168,7 @@ int main()
           num_of_back -=1;
         }
       }
-      else if ((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0) && rownum < 23){
+      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0)) && (rownum < 23)){
         acsii = convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
         colnum+=1;
         message_to_send[charIdex] = acsii;

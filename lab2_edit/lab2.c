@@ -122,6 +122,18 @@ int main()
         charIdex = 0;
         
       }
+      else if(packet.keycode[0] == 0x2A){
+        fbputchar(' ',rownum,colnum);
+        if((colnum-1 < 0)){
+          colnum = 63;
+          rownum = rownum - 1;
+        }
+        else{
+          colnum = colnum - 1;
+        }
+        charIdex = charIdex - 1;
+        message_to_send[charIdex] = '\0';   
+      }
       else if ((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0)){
         acsii = convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
         colnum+=1;
@@ -132,19 +144,7 @@ int main()
           rownum = 22;
         }
       }
-      else if(packet.keycode[0] == 0x2A){
-        if((colnum-1 == -1)){
-          colnum = 63;
-          rownum = rownum - 1;
-        }
-        else{
-          colnum = colnum - 1;
-        }
-        charIdex = charIdex - 1;
-        message_to_send[charIdex] = '\0';
-        fbclean(1,rownum,colnum);
-      }
-
+      
 
       //fbputs(keystate, 6, 0);
       

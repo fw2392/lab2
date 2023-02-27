@@ -136,6 +136,9 @@ int main()
           colnum = 63;
           rownum = rownum - 1;
         }
+        else{
+          colnum-=1;
+        }
         fbclean(1,rownum,colnum);
       }
 

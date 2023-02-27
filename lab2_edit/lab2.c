@@ -112,7 +112,7 @@ int main()
       sprintf(keystate, "%02x %02x %02x", packet.modifiers, packet.keycode[0],
 	      packet.keycode[1]);
       printf("%s\n", keystate);
-      if(packet.keycode[0] == 0x40){
+      if(packet.keycode[0] == 0x28){
         write(sockfd,message_to_send,strlen(message_to_send));
         fbclean(strlen(message_to_send),21,0);   
         message_to_send[0] = '\0';
@@ -131,7 +131,7 @@ int main()
           rownum = 22;
         }
       }
-      else if(packet.keycode[0] == 0x42){
+      else if(packet.keycode[0] == 0x2A){
         if(colnum-1 == -1){
           colnum = 63;
           rownum = rownum - 1;

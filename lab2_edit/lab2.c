@@ -113,10 +113,11 @@ int main()
 	      packet.keycode[1]);
       printf("%s\n", keystate);
       if(packet.keycode[0] == 0x28){
+        printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
         fbclean(strlen(message_to_send),21,0);   
         message_to_send[0] = '\0';
-        rownum = 22;
+        rownum = 21;
         colnum = 0;
         charIdex = 0;
         
@@ -132,18 +133,20 @@ int main()
         }
       }
       else if(packet.keycode[0] == 0x2A){
-        if(colnum-1 == -1){
+        if((colnum-1 == -1)){
           colnum = 63;
           rownum = rownum - 1;
         }
         else{
-          colnum-=1;
+          colnum = colnum - 1;
         }
+        charIdex = charIdex - 1;
+        message_to_send[charIdex] = '\0';
         fbclean(1,rownum,colnum);
       }
 
 
-      fbputs(keystate, 6, 0);
+      //fbputs(keystate, 6, 0);
       
       if (packet.keycode[0] == 0x29) { /* ESC pressed? */
 	      break;
@@ -166,11 +169,13 @@ void *network_thread_f(void *ignored)
 {
   char recvBuf[BUFFER_SIZE];
   int n;
+  int rownum = 1;
   /* Receive data */
   while ( (n = read(sockfd, &recvBuf, BUFFER_SIZE - 1)) > 0 ) {
     recvBuf[n] = '\0';
     printf("%s", recvBuf);
-    fbputs(recvBuf, 8, 0);
+    fbputs(recvBuf, rownum, 0);
+    rownum+=1;
   }
 
   return NULL;

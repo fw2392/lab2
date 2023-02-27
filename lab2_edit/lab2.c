@@ -103,6 +103,10 @@ int main()
   char message_to_send[128];
   int charIdex = 0;
   char acsii;
+  char part_message[128];
+  int part_Idex = 0;
+  int num_of_back = 0;
+  int backIdex = 0;
   for (;;) {
     fbputchar('_',rownum, colnum);
     libusb_interrupt_transfer(keyboard, endpoint_address,
@@ -113,28 +117,59 @@ int main()
 	      packet.keycode[1]);
       printf("%s\n", keystate);
       if(packet.keycode[0] == 0x28){
+        if(part_Idex != backIdex){
+          for(backIdex; backIdex < part_Idex; backIdex++){
+            message_to_send[charIdex] = part_message[backIdex];
+            charIdex+=1;
+          }
+        }
         printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
-        fbclean(strlen(message_to_send),21,0);   
+        fbclean(strlen(message_to_send)+1,21,0);   
         message_to_send[0] = '\0';
         rownum = 21;
         colnum = 0;
         charIdex = 0;
-        
+        part_message[0] = '\0';
+        part_Idex = 0;
+        num_of_back = 0;
+        backIdex = 0;
       }
       else if(packet.keycode[0] == 0x2A){
         fbputchar(' ',rownum,colnum);
-        if((colnum-1 < 0)){
+        colnum = colnum - 1;
+        if((colnum < 0)){
           colnum = 63;
           rownum = rownum - 1;
-        }
-        else{
-          colnum = colnum - 1;
         }
         charIdex = charIdex - 1;
         message_to_send[charIdex] = '\0';   
       }
-      else if ((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0)){
+      else if(packet.keycode[0]==0x50){
+        fbputchar(message_to_send[charIdex-1],rownum,colnum);
+        part_message[part_Idex] = message_to_send[charIdex-1];
+        charIdex -= 1;
+        colnum -= 1;
+        if(colnum < 0){
+          colnum =63;
+          rownum -=1;
+        }
+        num_of_back+=1;
+      }
+      else if(packet.keycode[0] == 0x4F){
+        if(num_of_back > 0){
+          message_to_send[charIdex] = part_message[backIdex];
+          charIdex += 1;
+          backIdex += 1;
+          colnum += 1;
+          if(colnum == 64){
+            rownum = rownum + 1;
+            colnum = 0;
+          }
+          num_of_back -=1;
+        }
+      }
+      else if ((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0) && rownum < 23){
         acsii = convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
         colnum+=1;
         message_to_send[charIdex] = acsii;

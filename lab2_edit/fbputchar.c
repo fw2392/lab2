@@ -53,6 +53,50 @@ int fbopen()
   return 0;
 }
 
+
+// void fbclearchar(char c, int row, int col){
+//   int x, y;
+//   unsigned char pixels, *pixelp = font + FONT_HEIGHT*c;
+//   unsigned char mask;
+//   unsigned char *pixel, *left = framebuffer +
+//     (row * FONT_HEIGHT * 2 + fb_vinfo.yoffset) * fb_finfo.line_length +
+//     (col * FONT_WIDTH * 2 + fb_vinfo.xoffset) * BITS_PER_PIXEL / 8;
+//   for (y = 0 ; y < FONT_HEIGHT * 2 ; y++, left += fb_finfo.line_length) {
+//     pixels = *pixelp;
+//     pixel = left;
+    
+//     mask = 0x80;
+//     for (x = 0 ; x < FONT_WIDTH ; x++) {
+//       if (pixels & mask) {	
+// 	      pixel[0] = 0; /* Red */
+//         pixel[1] = 0; /* Green */
+//         pixel[2] = 0; /* Blue */
+//         pixel[3] = 0;
+//       } else {
+// 	      pixel[0] = 0;
+//         pixel[1] = 0;
+//         pixel[2] = 0;
+//         pixel[3] = 0;
+//       }
+//       pixel += 4;
+//       if (pixels & mask) {
+// 	      pixel[0] = 0; /* Red */
+//         pixel[1] = 0; /* Green */
+//         pixel[2] = 0; /* Blue */
+//         pixel[3] = 0;
+//       } else {
+// 	      pixel[0] = 0;
+//         pixel[1] = 0;
+//         pixel[2] = 0;
+//         pixel[3] = 0;
+//       }
+//       pixel += 4;
+//       mask >>= 1;
+//     }
+//     if (y & 0x1) pixelp++;
+//   }
+
+// }
 /*
  * Draw the given character at the given row/column.
  * fbopen() must be called first.
@@ -72,24 +116,24 @@ void fbputchar(char c, int row, int col)
     mask = 0x80;
     for (x = 0 ; x < FONT_WIDTH ; x++) {
       if (pixels & mask) {	
-	pixel[0] = 255; /* Red */
+	      pixel[0] = 255; /* Red */
         pixel[1] = 255; /* Green */
         pixel[2] = 255; /* Blue */
         pixel[3] = 0;
       } else {
-	pixel[0] = 0;
+	      pixel[0] = 0;
         pixel[1] = 0;
         pixel[2] = 0;
         pixel[3] = 0;
       }
       pixel += 4;
       if (pixels & mask) {
-	pixel[0] = 255; /* Red */
+	      pixel[0] = 255; /* Red */
         pixel[1] = 255; /* Green */
         pixel[2] = 255; /* Blue */
         pixel[3] = 0;
       } else {
-	pixel[0] = 0;
+	      pixel[0] = 0;
         pixel[1] = 0;
         pixel[2] = 0;
         pixel[3] = 0;
@@ -108,8 +152,50 @@ void fbputchar(char c, int row, int col)
 void fbputs(const char *s, int row, int col)
 {
   char c;
-  while ((c = *s++) != 0) fbputchar(c, row, col++);
+  int colnum = col;
+  int rownum = row;
+
+  while ((c = *s++) != 0){
+    if(colnum == 64){
+      rownum +=1;
+      colnum = 0;
+    }
+    fbputchar(c, rownum, colnum);
+    colnum+=1;
+  }
 }
+void fbclean(int lens, int row, int col){
+  int rownum = row;
+  int colnum = col;
+  char c = 32;
+  for (int i = 0; i < lens; i++)
+  {
+     if (colnum == 64)
+     {
+       rownum+=1;
+       colnum = 0;
+     }
+     
+     fbputchar(c,rownum,colnum);
+     colnum+=1;
+  }
+  
+}
+
+// void fbclean(const char *s, int row, int col)
+// {
+//   char c;
+//   int colnum = col;
+//   int rownum = row;
+//   while ((c = *s++) != 0) {
+//     if(colnum == 64){
+//         colnum = 0;
+//         rownum +=1;
+//     }
+//     fbclearchar(c, rownum, colnum);
+//     colnum+=1;
+//     };
+// }
 
 /* 8 X 16 console font from /lib/kbd/consolefonts/lat0-16.psfu.gz
 

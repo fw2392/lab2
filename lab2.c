@@ -48,13 +48,14 @@ int main()
   struct usb_keyboard_packet packet;
   int transferred;
   char keystate[12];
-  fbclean(24*64,0,0);
+  
   if ((err = fbopen()) != 0) {
     fprintf(stderr, "Error: Could not open framebuffer: %d\n", err);
     exit(1);
   }
 
   /* Draw rows of asterisks across the top and bottom of the screen */
+  fbclean(24*64,0,0);
   for (col = 0 ; col < 64 ; col++) {
     fbputchar('*', 0, col);
     fbputchar('*', 23, col);

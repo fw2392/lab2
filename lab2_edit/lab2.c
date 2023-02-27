@@ -112,17 +112,16 @@ int main()
       sprintf(keystate, "%02x %02x %02x", packet.modifiers, packet.keycode[0],
 	      packet.keycode[1]);
       printf("%s\n", keystate);
-      if(packet.keycode[0] == 40){
+      if(packet.keycode[0] == 0x40){
         write(sockfd,message_to_send,strlen(message_to_send));
+        fbclean(strlen(message_to_send),21,0);   
         message_to_send[0] = '\0';
         rownum = 22;
         colnum = 0;
         charIdex = 0;
+        
       }
-
-
-      fbputs(keystate, 6, 0);
-      if (packet.keycode[0] != 0 || packet.keycode[1]!=0 || packet.modifiers != 0){
+      else if ((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0)){
         acsii = convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
         colnum+=1;
         message_to_send[charIdex] = acsii;
@@ -132,6 +131,17 @@ int main()
           rownum = 22;
         }
       }
+      else if(packet.keycode[0] == 0x42){
+        if(colnum-1 == -1){
+          colnum = 63;
+          rownum = rownum - 1;
+        }
+        fbclean(1,rownum,colnum);
+      }
+
+
+      fbputs(keystate, 6, 0);
+      
       if (packet.keycode[0] == 0x29) { /* ESC pressed? */
 	      break;
       }
@@ -172,7 +182,7 @@ int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row,
         c = c - 32;
     }
     }
-    if(keycode0 >=  30 && keycode0 <= 27){
+    else if(keycode0 >=  30 && keycode0 <= 27){
       c = keycode0 + 19;
       if(modifier == 2){
         switch (keycode0)

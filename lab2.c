@@ -125,8 +125,8 @@ int main()
   char message_to_send[128];
   int charIdex = 0;
   char acsii;
-  char part_message[128];
-  int part_Idex = 0;
+  //char part_message[128];
+  //int part_Idex = 0;
   int disprow = 13;
   for (;;) {
     
@@ -139,11 +139,11 @@ int main()
 	      packet.keycode[1]);
       printf("%s\n", keystate);
       if(packet.keycode[0] == 0x28){
-        while(part_Idex > 0){
-          message_to_send[charIdex] = part_message[part_Idex-1];
-          charIdex+=1;
-          part_Idex-=1;
-        }
+        // while(part_Idex > 0){
+        //   message_to_send[charIdex] = part_message[part_Idex-1];
+        //   charIdex+=1;
+        //   part_Idex-=1;
+        // }
         message_to_send[charIdex] = '\0'; 
         printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
@@ -154,41 +154,58 @@ int main()
         rownum = 21;
         colnum = 0;
         charIdex = 0;
-        part_message[0] = '\0';
-        part_Idex = 0;   
+        //part_message[0] = '\0';
+        //part_Idex = 0;   
       }
       else if(packet.keycode[0] == 0x2A){//back space
-        fbputchar(' ',rownum,colnum);
-        colnum = colnum - 1;
-        if((colnum < 0)){
-          colnum = 63;
-          rownum = rownum - 1;
+        if(colnum > 0){
+          fbputchar(' ',rownum,colnum);
+          colnum = colnum - 1;
+          if((colnum < 0)){
+            colnum = 63;
+            rownum = rownum - 1;
+          }
+          charIdex = charIdex - 1;
+          message_to_send[charIdex] = '\0';
         }
-        charIdex = charIdex - 1;
-        message_to_send[charIdex] = '\0';   
+           
       }
-      else if(packet.keycode[0]==0x50){//left arrow
-        fbputchar(message_to_send[charIdex-1],rownum,colnum);
-        part_message[part_Idex] = message_to_send[charIdex-1];
-        charIdex -= 1;
+      else if(packet.keycode[0]==0x50){//left arrow    
+        // if(part_Idex > 0){
+        //   fbputchar(part_message[part_Idex],rownum,colnum); 
+        // } 
+        // part_message[part_Idex] = message_to_send[charIdex-1];
+        // charIdex -= 1;
+        // colnum -= 1;
+        // part_Idex += 1;
+        // if(colnum < 0){
+        //   colnum =63;
+        //   rownum -=1;
+        // }
         colnum -= 1;
-        part_Idex += 1;
+        charIdex -= 1;
         if(colnum < 0){
           colnum =63;
           rownum -=1;
         }
       }
       else if(packet.keycode[0] == 0x4F){//right arrow
-        if(part_Idex > 0){
-          message_to_send[charIdex] = part_message[part_Idex-1];
-          fbputchar(part_message[part_Idex-1],rownum,colnum);
-          part_Idex -= 1;
-          charIdex += 1;
-          colnum += 1;
-          if(colnum == 64){
-            rownum = rownum + 1;
-            colnum = 0;
-          }
+        // if(part_Idex > 0){
+        //   message_to_send[charIdex] = part_message[part_Idex-1];
+        //   fbputchar(part_message[part_Idex-1],rownum,colnum);
+        //   part_Idex -= 1;
+        //   charIdex += 1;
+        //   colnum += 1;
+        //   if(colnum == 64){
+        //     rownum = rownum + 1;
+        //     colnum = 0;
+        //   }
+        // }
+        colnum += 1;
+        charIdex += 1;
+        if(colnum == 64){
+          rownum = rownum + 1;
+          colnum = 0;
         }
       }
       else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0)) && (rownum < 23)){
@@ -226,11 +243,11 @@ void *network_thread_f(void *ignored)
 {
   char recvBuf[BUFFER_SIZE];
   int n;
-  int rownum = 1;
+  int rownum = 2;
   /* Receive data */
   while ( (n = read(sockfd, &recvBuf, BUFFER_SIZE - 1)) > 0 ) {
-    if(rownum == 12 ||(rownum == 11 && strlen(recvBuf) > 64)){
-      rownum = 1;
+    if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64))){
+      rownum = 2;
     }
     recvBuf[n] = '\0';
     printf("%s", recvBuf);

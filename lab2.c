@@ -39,7 +39,27 @@ uint8_t endpoint_address;
 pthread_t network_thread;
 void *network_thread_f(void *);
 int convert_to_ascii(uint8_t, uint8_t, uint8_t, int, int);
-int dis_type(char[],int);
+
+int dis_type(char message[], int rownum)
+{
+  int newrownum = rownum;
+  if(((rownum == 20) && (strlen(message) > 64)) || rownum >= 21){
+    newrownum = 13;
+  }
+  if(strlen(message) > 64){
+    fbclean(128,newrownum,0);
+  }
+  else{
+    fbclean(64,newrownum,0);
+  }
+  fbputs(message,newrownum,0);
+  if(strlen(message) > 64){
+    newrownum = newrownum+1;
+  }
+  newrownum += 1;
+  return newrownum;
+}
+
 int main()
 {
   int err, col;
@@ -234,25 +254,7 @@ void *network_thread_f(void *ignored)
   return NULL;
 }
 
-int dis_type(char message[], int rownum)
-{
-  int newrownum = rownum;
-  if(((rownum == 20) && (strlen(message) > 64)) || rownum >= 21){
-    newrownum = 13;
-  }
-  if(strlen(message) > 64){
-    fbclean(128,newrownum,0);
-  }
-  else{
-    fbclean(64,newrownum,0);
-  }
-  fbputs(message,newrownum,0);
-  if(strlen(message) > 64){
-    newrownum = newrownum+1;
-  }
-  newrownum += 1;
-  return newrownum;
-}
+
 
 int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row, int col){
     char c;

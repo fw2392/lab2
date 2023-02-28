@@ -39,6 +39,7 @@ uint8_t endpoint_address;
 pthread_t network_thread;
 void *network_thread_f(void *);
 int convert_to_ascii(uint8_t, uint8_t, uint8_t, int, int);
+int dis_type(char message[128],int rownum)
 int main()
 {
   int err, col;
@@ -108,6 +109,7 @@ int main()
   int part_Idex = 0;
   int num_of_back = 0;
   int backIdex = 0;
+  int disprow = 13;
   for (;;) {
     
     fbputchar('_',rownum, colnum);
@@ -126,7 +128,8 @@ int main()
         }
         printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
-        fbclean(strlen(message_to_send)+1,21,0);   
+        disprow = dis_type(message_to_send,disprow);
+        fbclean(64,21,0);   
         message_to_send[0] = '\0';
         rownum = 21;
         colnum = 0;
@@ -136,7 +139,7 @@ int main()
         num_of_back = 0;
         backIdex = 0;
       }
-      else if(packet.keycode[0] == 0x2A){
+      else if(packet.keycode[0] == 0x2A){//back space
         fbputchar(' ',rownum,colnum);
         colnum = colnum - 1;
         if((colnum < 0)){
@@ -146,20 +149,22 @@ int main()
         charIdex = charIdex - 1;
         message_to_send[charIdex] = '\0';   
       }
-      else if(packet.keycode[0]==0x50){
+      else if(packet.keycode[0]==0x50){//left arrow
         fbputchar(message_to_send[charIdex-1],rownum,colnum);
         part_message[part_Idex] = message_to_send[charIdex-1];
         charIdex -= 1;
         colnum -= 1;
+        part_Idex += 1;
         if(colnum < 0){
           colnum =63;
           rownum -=1;
         }
         num_of_back+=1;
       }
-      else if(packet.keycode[0] == 0x4F){
+      else if(packet.keycode[0] == 0x4F){//right arrow
         if(num_of_back > 0){
           message_to_send[charIdex] = part_message[backIdex];
+          fbputchar(part_message[backIdex],rownum,colnum);
           charIdex += 1;
           backIdex += 1;
           colnum += 1;
@@ -208,13 +213,43 @@ void *network_thread_f(void *ignored)
   int rownum = 1;
   /* Receive data */
   while ( (n = read(sockfd, &recvBuf, BUFFER_SIZE - 1)) > 0 ) {
+    if(rownum == 12 ||(rownum == 11 && strlen(recvBuf) > 64)){
+      rownum = 1;
+    }
     recvBuf[n] = '\0';
     printf("%s", recvBuf);
+    if(strlen(recvBuf) > 64){
+      fbclean(128,rownum,0);
+    }
+    else{
+      fbclean(64,rownum,0);
+    }
     fbputs(recvBuf, rownum, 0);
+    if(strlen(recvBuf) > 64){
+      rownum+=1;
+    }
     rownum+=1;
   }
 
   return NULL;
+}
+int dis_type(char message[128],int rownum){
+  int newrownum = rownum;
+  if(((rownum == 20) && (strlen(message) > 64)) || rownum >= 21){
+    newrownum = 13;
+  }
+  if(strlen(message) > 64){
+    fbclean(128,newrownum,0)
+  }
+  else{
+    fbclean(64,newrownum,0);
+  }
+  fbputs(message,newrownum,0);
+  if(strlen(message) > 64){
+    newrownum = newrownum+1;
+  }
+  newrownum += 1;
+  return newrownum;
 }
 
 int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row, int col){

@@ -39,6 +39,27 @@ uint8_t endpoint_address;
 pthread_t network_thread;
 void *network_thread_f(void *);
 int convert_to_ascii(uint8_t, uint8_t, uint8_t, int, int);
+
+int dis_type(char message[], int rownum)
+{
+  int newrownum = rownum;
+  if(((rownum == 20) && (strlen(message) > 64)) || rownum >= 21){
+    newrownum = 13;
+  }
+  if(strlen(message) > 64){
+    fbclean(128,newrownum,0);
+  }
+  else{
+    fbclean(64,newrownum,0);
+  }
+  fbputs(message,newrownum,0);
+  if(strlen(message) > 64){
+    newrownum = newrownum+1;
+  }
+  newrownum += 1;
+  return newrownum;
+}
+
 int main()
 {
   int err, col;
@@ -48,13 +69,16 @@ int main()
   struct usb_keyboard_packet packet;
   int transferred;
   char keystate[12];
-
+  
   if ((err = fbopen()) != 0) {
     fprintf(stderr, "Error: Could not open framebuffer: %d\n", err);
     exit(1);
   }
 
   /* Draw rows of asterisks across the top and bottom of the screen */
+  for (int r0 = 0; r0 <= 23; r0++){
+    fbclean(64,r0,0);
+  }
   for (col = 0 ; col < 64 ; col++) {
     fbputchar('*', 0, col);
     fbputchar('*', 23, col);
@@ -65,7 +89,7 @@ int main()
   }
   
 
-  fbputs("Hello CSEE 4840 World!", 4, 10);
+  //fbputs("Hello CSEE 4840 World!", 4, 10);
 
   /* Open the keyboard */
   if ( (keyboard = openkeyboard(&endpoint_address)) == NULL ) {
@@ -105,9 +129,9 @@ int main()
   char acsii;
   char part_message[128];
   int part_Idex = 0;
-  int num_of_back = 0;
-  int backIdex = 0;
+  int disprow = 13;
   for (;;) {
+    
     fbputchar('_',rownum, colnum);
     libusb_interrupt_transfer(keyboard, endpoint_address,
 			      (unsigned char *) &packet, sizeof(packet),
@@ -117,56 +141,71 @@ int main()
 	      packet.keycode[1]);
       printf("%s\n", keystate);
       if(packet.keycode[0] == 0x28){
-        while(backIdex < part_Idex){
-          message_to_send[charIdex] = part_message[backIdex];
+        while(part_Idex > 0){
+          message_to_send[charIdex] = part_message[part_Idex-1];
           charIdex+=1;
-          backIdex+=1;
+          part_Idex-=1;
         }
+        message_to_send[charIdex] = '\0'; 
         printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
-        fbclean(strlen(message_to_send)+1,21,0);   
+        disprow = dis_type(message_to_send,disprow);
+        fbclean(128,21,0); 
+         
         message_to_send[0] = '\0';
         rownum = 21;
         colnum = 0;
         charIdex = 0;
         part_message[0] = '\0';
-        part_Idex = 0;
-        num_of_back = 0;
-        backIdex = 0;
+        part_Idex = 0;   
       }
-      else if(packet.keycode[0] == 0x2A){
-        fbputchar(' ',rownum,colnum);
-        colnum = colnum - 1;
-        if((colnum < 0)){
-          colnum = 63;
-          rownum = rownum - 1;
+      else if(packet.keycode[0] == 0x2A){//back space
+        if(colnum > 0){
+          fbputchar(' ',rownum,colnum);
+          colnum = colnum - 1;
+          if((colnum < 0)){
+            colnum = 63;
+            rownum = rownum - 1;
+          }
+          charIdex = charIdex - 1;
+          message_to_send[charIdex] = '\0';
         }
-        charIdex = charIdex - 1;
-        message_to_send[charIdex] = '\0';   
+           
       }
-      else if(packet.keycode[0]==0x50){
-        fbputchar(message_to_send[charIdex-1],rownum,colnum);
-        part_message[part_Idex] = message_to_send[charIdex-1];
-        charIdex -= 1;
-        colnum -= 1;
-        if(colnum < 0){
-          colnum =63;
-          rownum -=1;
+      else if(packet.keycode[0]==0x50){//left arrow    
+        if(charIdex > 0){
+          if(part_Idex > 0){
+            fbputchar(part_message[part_Idex-1],rownum,colnum); 
+          }
+          else if(part_Idex == 0){
+            fbputchar(' ',rownum,colnum);
+          } 
+          part_message[part_Idex] = message_to_send[charIdex-1];
+          charIdex -= 1;
+          colnum -= 1;
+          part_Idex += 1;
+          if(colnum < 0 && rownum == 22){
+            colnum =63;
+            rownum -=1;
+          }
+
         }
-        num_of_back+=1;
+        
+        
       }
-      else if(packet.keycode[0] == 0x4F){
-        if(num_of_back > 0){
-          message_to_send[charIdex] = part_message[backIdex];
+      else if(packet.keycode[0] == 0x4F){//right arrow
+        if(part_Idex > 0){    
+          message_to_send[charIdex] = part_message[part_Idex-1];
+          fbputchar(message_to_send[charIdex],rownum,colnum);
+          part_Idex -= 1;
           charIdex += 1;
-          backIdex += 1;
           colnum += 1;
           if(colnum == 64){
             rownum = rownum + 1;
             colnum = 0;
           }
-          num_of_back -=1;
         }
+      
       }
       else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0)) && (rownum < 23)){
         acsii = convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
@@ -206,14 +245,28 @@ void *network_thread_f(void *ignored)
   int rownum = 1;
   /* Receive data */
   while ( (n = read(sockfd, &recvBuf, BUFFER_SIZE - 1)) > 0 ) {
+    if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64))){
+      rownum = 1;
+    }
     recvBuf[n] = '\0';
     printf("%s", recvBuf);
+    if(strlen(recvBuf) > 64){
+      fbclean(128,rownum,0);
+    }
+    else{
+      fbclean(64,rownum,0);
+    }
     fbputs(recvBuf, rownum, 0);
+    if(strlen(recvBuf) > 64){
+      rownum+=1;
+    }
     rownum+=1;
   }
 
   return NULL;
 }
+
+
 
 int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row, int col){
     char c;
@@ -224,7 +277,7 @@ int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row,
         c = c - 32;
     }
     }
-    else if(keycode0 >=  30 && keycode0 <= 27){
+    else if(keycode0 >=  30 && keycode0 <= 39){
       c = keycode0 + 19;
       if(modifier == 2){
         switch (keycode0)
@@ -261,6 +314,14 @@ int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row,
             break;    
           default:
             break;
+        }
+      }
+      else{
+        if(keycode0 == 39){
+          c = 48;
+        }
+        else{
+          c = keycode0 + 19;
         }
       }
     }

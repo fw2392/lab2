@@ -212,6 +212,11 @@ int main()
         colnum+=1;
         message_to_send[charIdex] = acsii;
         charIdex+=1;
+        if(part_Idex > 0){
+          part_message[part_Idex-1] = '\0';
+          part_Idex -= 1;
+
+        }
         if(colnum == 64){
           colnum = 0;
           rownum = 22;

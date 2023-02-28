@@ -39,7 +39,7 @@ uint8_t endpoint_address;
 pthread_t network_thread;
 void *network_thread_f(void *);
 int convert_to_ascii(uint8_t, uint8_t, uint8_t, int, int);
-int dis_type(char message[],int rownum);
+int dis_type(char[],int);
 int main()
 {
   int err, col;
@@ -241,7 +241,7 @@ int dis_type(char message[], int rownum)
     newrownum = 13;
   }
   if(strlen(message) > 64){
-    fbclean(128,newrownum,0)
+    fbclean(128,newrownum,0);
   }
   else{
     fbclean(64,newrownum,0);

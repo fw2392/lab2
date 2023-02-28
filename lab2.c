@@ -233,11 +233,11 @@ void *network_thread_f(void *ignored)
 {
   char recvBuf[BUFFER_SIZE];
   int n;
-  int rownum = 2;
+  int rownum = 1;
   /* Receive data */
   while ( (n = read(sockfd, &recvBuf, BUFFER_SIZE - 1)) > 0 ) {
     if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64))){
-      rownum = 2;
+      rownum = 1;
     }
     recvBuf[n] = '\0';
     printf("%s", recvBuf);

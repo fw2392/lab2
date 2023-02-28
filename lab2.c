@@ -182,7 +182,7 @@ int main()
           charIdex -= 1;
           colnum -= 1;
           part_Idex += 1;
-          if(colnum < 0 && rownum = 22){
+          if(colnum < 0 && rownum == 22){
             colnum =63;
             rownum -=1;
           }

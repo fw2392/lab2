@@ -148,7 +148,7 @@ int main()
         printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
         disprow = dis_type(message_to_send,disprow);
-        fbclean(64,21,0); 
+        fbclean(128,21,0); 
          
         message_to_send[0] = '\0';
         rownum = 21;
@@ -171,17 +171,24 @@ int main()
            
       }
       else if(packet.keycode[0]==0x50){//left arrow    
-        if(part_Idex > 0){
-          fbputchar(part_message[part_Idex],rownum,colnum); 
-        } 
-        part_message[part_Idex] = message_to_send[charIdex-1];
-        charIdex -= 1;
-        colnum -= 1;
-        part_Idex += 1;
-        if(colnum < 0){
-          colnum =63;
-          rownum -=1;
+        if(charIdex > 0){
+          if(part_Idex > 0){
+            fbputchar(part_message[part_Idex],rownum,colnum); 
+          }
+          else if(part_Idex == 0){
+            fbputchar(' ',rownum,colnum);
+          } 
+          part_message[part_Idex] = message_to_send[charIdex-1];
+          charIdex -= 1;
+          colnum -= 1;
+          part_Idex += 1;
+          if(colnum < 0 && rownum = 22){
+            colnum =63;
+            rownum -=1;
+          }
+
         }
+        
         
       }
       else if(packet.keycode[0] == 0x4F){//right arrow

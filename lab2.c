@@ -139,7 +139,7 @@ int main()
 	      packet.keycode[1]);
       printf("%s\n", keystate);
       if(packet.keycode[0] == 0x28){
-        while(0 < part_Idex){
+        while(part_Idex > 0){
           message_to_send[charIdex] = part_message[part_Idex-1];
           charIdex+=1;
           part_Idex-=1;

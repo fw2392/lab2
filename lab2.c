@@ -233,7 +233,8 @@ void *network_thread_f(void *ignored)
 
   return NULL;
 }
-int dis_type(char message[128],int rownum){
+int dis_type(char message[], int rownum)
+{
   int newrownum = rownum;
   if(((rownum == 20) && (strlen(message) > 64)) || rownum >= 21){
     newrownum = 13;

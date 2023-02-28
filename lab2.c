@@ -175,7 +175,7 @@ int main()
       else if(packet.keycode[0]==0x50){//left arrow    
         if(charIdex > 0){
           if(part_Idex > 0){
-            fbputchar(part_message[part_Idex],rownum,colnum); 
+            fbputchar(part_message[part_Idex-1],rownum,colnum); 
           }
           else if(part_Idex == 0){
             fbputchar(' ',rownum,colnum);

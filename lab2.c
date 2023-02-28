@@ -76,8 +76,8 @@ int main()
   }
 
   /* Draw rows of asterisks across the top and bottom of the screen */
-  for (int r1 = 0; r1 <= 23; r1++){
-    fbclean(64,r1,0);
+  for (int r0 = 0; r0 <= 23; r0++){
+    fbclean(64,r0,0);
   }
   for (col = 0 ; col < 64 ; col++) {
     fbputchar('*', 0, col);

@@ -87,7 +87,7 @@ int main()
   }
   
 
-  fbputs("Hello CSEE 4840 World!", 4, 10);
+  //fbputs("Hello CSEE 4840 World!", 4, 10);
 
   /* Open the keyboard */
   if ( (keyboard = openkeyboard(&endpoint_address)) == NULL ) {
@@ -144,10 +144,12 @@ int main()
           charIdex+=1;
           part_Idex-=1;
         }
+        message_to_send[charIdex] = '\0'; 
         printf("%s\n", message_to_send);
         write(sockfd,message_to_send,strlen(message_to_send));
         disprow = dis_type(message_to_send,disprow);
-        fbclean(64,21,0);   
+        fbclean(64,21,0); 
+         
         message_to_send[0] = '\0';
         rownum = 21;
         colnum = 0;

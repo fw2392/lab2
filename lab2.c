@@ -38,7 +38,7 @@ uint8_t endpoint_address;
 
 pthread_t network_thread;
 void *network_thread_f(void *);
-int convert_to_ascii(uint8_t, uint8_t, uint8_t, int, int);
+int convert_to_ascii(uint8_t, uint8_t, int, int);
 
 int dis_type(char message[], int rownum)
 {
@@ -130,6 +130,7 @@ int main()
   char part_message[128];
   int part_Idex = 0;
   int disprow = 13;
+  char key1save[2];
   for (;;) {
     
     fbputchar('_',rownum, colnum);
@@ -211,10 +212,12 @@ int main()
       
       }
       else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
+        
         if((packet.keycode[0] != 0x0) && (packet.keycode[1]!= 0x0)){
-          ascii = convert_to_ascii(packet.keycode[1], packet.modifiers, rownum, colnum);
+          key1save = packet.keycode[0];
+          acsii = convert_to_ascii(packet.keycode[1], packet.modifiers, rownum, colnum);
         }
-        else{
+        else if(packet.keycode[0] != key1save){
           acsii = convert_to_ascii(packet.keycode[0], packet.modifiers, rownum, colnum);
         }
         colnum+=1;

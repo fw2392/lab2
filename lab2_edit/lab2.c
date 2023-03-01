@@ -130,6 +130,7 @@ int main()
   char part_message[128];
   int part_Idex = 0;
   int disprow = 13;
+  int key1save;
   for (;;) {
     
     fbputchar('_',rownum, colnum);
@@ -213,9 +214,10 @@ int main()
       else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
         
         if((packet.keycode[0] != 0x0) && (packet.keycode[1]!= 0x0)){
+          key1save = packet.keycode[0];
           acsii = convert_to_ascii(packet.keycode[1], packet.modifiers, rownum, colnum);
         }
-        else{
+        else if(packet.keycode[0] != key1save){
           acsii = convert_to_ascii(packet.keycode[0], packet.modifiers, rownum, colnum);
         }
         colnum+=1;

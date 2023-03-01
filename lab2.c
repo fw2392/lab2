@@ -160,14 +160,17 @@ int main()
         part_Idex = 0;   
       }
       else if(packet.keycode[0] == 0x2A){//back space
-        if(colnum > 0){
+        if(rownum >= 21){
           fbputchar(' ',rownum,colnum);
           colnum = colnum - 1;
-          if((colnum < 0)){
+          charIdex = charIdex - 1;
+          if((colnum < 0 && rownum == 22)){
             colnum = 63;
             rownum = rownum - 1;
+          } else if (colnum < 0){
+            colnum = 0;
+            charIdex = 0;
           }
-          charIdex = charIdex - 1;
           message_to_send[charIdex] = '\0';
         }
            
@@ -207,8 +210,13 @@ int main()
         }
       
       }
-      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0) || (packet.modifiers != 0x0)) && (rownum < 23)){
-        acsii = convert_to_ascii(packet.keycode[0], packet.keycode[1], packet.modifiers, rownum, colnum);
+      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
+        if((packet.keycode[0] != 0x0) && (packet.keycode[1]!= 0x0)){
+          ascii = convert_to_ascii(packet.keycode[1], packet.modifiers, rownum, colnum);
+        }
+        else{
+          acsii = convert_to_ascii(packet.keycode[0], packet.modifiers, rownum, colnum);
+        }
         colnum+=1;
         message_to_send[charIdex] = acsii;
         charIdex+=1;
@@ -273,18 +281,18 @@ void *network_thread_f(void *ignored)
 
 
 
-int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row, int col){
+int convert_to_ascii(uint8_t keycode0, uint8_t modifier,int row, int col){
     char c;
     
     if(keycode0 >= 4 && keycode0 <= 29){
-      c = keycode0 + 93;
-      if(modifier == 2){
-        c = c - 32;
+      c = keycode0 + 93;// Lower letter "a ~ z" without "shift"
+      if(modifier == 2 || modifier == 0x20){
+        c = c - 32;// Upper letter "A ~ Z" with "shift"
     }
     }
-    else if(keycode0 >=  30 && keycode0 <= 39){
+    else if(keycode0 >=  30 && keycode0 <= 39){// Number "0 ~ 9"
       c = keycode0 + 19;
-      if(modifier == 2){
+      if(modifier == 2 || modifier == 0x20){ // "! ~ )" with "shift"
         switch (keycode0)
         {
           case 30:
@@ -330,8 +338,85 @@ int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row,
         }
       }
     }
-    else if(keycode0 == 44){
+    else if(keycode0 == 44){// Space Bar
       c = 32;
+    } 
+    else if (keycode0 >=  45 && keycode0 <= 56){
+      if(modifier == 2 || modifier == 0x20){
+        switch (keycode0){
+          case 45:// "_"
+            c = 95;
+            break;
+          case 46:// "+"
+            c = 43;
+            break;
+          case 47:// "{"
+            c = 123;
+            break;
+          case 48:// "}"
+            c = 125;
+            break;
+          case 49:// "|"
+            c = 124;
+            break;
+          case 50:
+            break;
+          case 51:// ":"
+            c = 58;
+            break;
+          case 52:// """
+            c = 34;
+            break;
+          case 53:
+            break;
+          case 54:// "<"
+            c = 60;
+            break;
+          case 55:// ">"
+            c = 62;
+            break;
+          case 56:// "?"
+            c = 63;
+            break;
+        }
+      } else {
+        switch (keycode0){
+          case 45:// "-"
+            c = 45;
+            break;
+          case 46:// "="
+            c = 61;
+            break;
+          case 47:// "["
+            c = 91;
+            break;
+          case 48:// "]"
+            c = 93;
+            break;
+          case 49:// "\"
+            c = 92;
+            break;
+          case 50:
+            break;
+          case 51:// ";"
+            c = 59;
+            break;
+          case 52:// "'"
+            c = 39;
+            break;
+          case 53:
+            break;
+          case 54:// ","
+            c = 44;
+            break;
+          case 55:// "."
+            c = 46;
+            break;
+          case 56:// "/"
+            c = 47;
+            break;
+        }
+      }
     }
     fbputchar(c,row,col);
 

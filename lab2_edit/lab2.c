@@ -331,7 +331,7 @@ int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row,
       }
     }
     else if(keycode0 == 44){
-      c = 32
+      c = 32;
     }
     fbputchar(c,row,col);
 

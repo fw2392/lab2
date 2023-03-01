@@ -212,6 +212,11 @@ int main()
         colnum+=1;
         message_to_send[charIdex] = acsii;
         charIdex+=1;
+        if(part_Idex > 0){
+          part_message[part_Idex-1] = '\0';
+          part_Idex -= 1;
+
+        }
         if(colnum == 64){
           colnum = 0;
           rownum = 22;
@@ -324,6 +329,9 @@ int convert_to_ascii(uint8_t keycode0,uint8_t keycode1,uint8_t modifier,int row,
           c = keycode0 + 19;
         }
       }
+    }
+    else if(keycode0 == 44){
+      c = 32;
     }
     fbputchar(c,row,col);
 

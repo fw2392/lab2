@@ -163,14 +163,18 @@ int main()
       else if(packet.keycode[0] == 0x2A){//back space
         if(rownum >= 21){
           fbputchar(' ',rownum,colnum);
-          int newcol = colnum;
-          int new = part_Idex-1;
-          fbputchar(' ',rownum,colnum+new);
-          while(new > 0){
-            fbputchar(part_message[new-1],rownum,newcol);
-            new = new -1;
-            newcol = newcol + 1;
-          } 
+          if(part_Idex > 0){
+            int newcol = colnum;
+            int new = part_Idex-1;
+            fbputchar(' ',rownum,colnum+new);
+            while(new > 0){
+              fbputchar(part_message[new-1],rownum,newcol);
+              new = new -1;
+              newcol = newcol + 1;
+            } 
+
+
+          }       
           colnum = colnum - 1;
           charIdex = charIdex - 1;
           
@@ -221,7 +225,7 @@ int main()
         }
       
       }
-      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
+      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23 && colnum < 64) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
         
         if((packet.keycode[0] != 0x0) && (packet.keycode[1]!= 0x0)){
           key1save = packet.keycode[0];
@@ -243,7 +247,7 @@ int main()
           part_Idex -= 1;
 
         }
-        if(colnum == 64){
+        if(colnum == 64 && rownum == 21){
           colnum = 0;
           rownum = 22;
         }
@@ -276,7 +280,7 @@ void *network_thread_f(void *ignored)
   int rownum = 1;
   /* Receive data */
   while ( (n = read(sockfd, &recvBuf, BUFFER_SIZE - 1)) > 0 ) {
-    if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64))){
+    if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64)) || (rownum == 10 && strlen(recvBuf) > 128)){
       rownum = 1;
     }
     if(recvBuf[n-1] == 10){

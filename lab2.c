@@ -270,11 +270,11 @@ void *network_thread_f(void *ignored)
       rownum = 1;
     }
     if(recvBuf[n-1] == 10){
-      recvBuf[n-1] = 0;
+      recvBuf[n-1] = '\0';
     }
     recvBuf[n] = '\0';
-    printf("%s", recvBuf);
-    printf("%d",recvBuf[n-1]);
+    printf("%s\n", recvBuf);
+    
     if(strlen(recvBuf) > 64){
       fbclean(128,rownum,0);
     }

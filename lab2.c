@@ -165,6 +165,7 @@ int main()
           fbputchar(' ',rownum,colnum);
           int newcol = colnum;
           int new = part_Idex-1;
+          fbputchar(' ',rownum,colnum+new);
           while(new > 0){
             fbputchar(part_message[new-1],rownum,newcol);
             new = new -1;

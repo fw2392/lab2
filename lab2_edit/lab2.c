@@ -269,9 +269,12 @@ void *network_thread_f(void *ignored)
     if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64))){
       rownum = 1;
     }
+    if(recvBuf[n-1] == 10){
+      recvBuf[n-1] = 0;
+    }
     recvBuf[n] = '\0';
-    printf("%s/n", recvBuf);
-    printf("%d/n",recvBuf[n-1]);
+    printf("%s\n", recvBuf);
+    
     if(strlen(recvBuf) > 64){
       fbclean(128,rownum,0);
     }

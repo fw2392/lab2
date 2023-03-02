@@ -236,7 +236,6 @@ int main()
         }
         else if(packet.keycode[0] != key1save){
           acsii = convert_to_ascii(packet.keycode[0], packet.modifiers, rownum, colnum);
-          key1save = 0;
           colnum+=1;
           message_to_send[charIdex] = acsii;
           charIdex+=1;
@@ -251,6 +250,9 @@ int main()
           colnum = 0;
           rownum = 22;
         }
+      }
+      else if((packet.keycode[0] == 0x0) && (packet.keycode[1] == 0x0)){
+        key1save = 0;
       }
       
 

@@ -225,7 +225,7 @@ int main()
         }
       
       }
-      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
+      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23 && charIdex < 128) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
         
         if((packet.keycode[0] != 0x0) && (packet.keycode[1]!= 0x0)){
           key1save = packet.keycode[0];
@@ -236,10 +236,10 @@ int main()
         }
         else if(packet.keycode[0] != key1save){
           acsii = convert_to_ascii(packet.keycode[0], packet.modifiers, rownum, colnum);
-          key1save = 0;
           colnum+=1;
           message_to_send[charIdex] = acsii;
           charIdex+=1;
+          key1save = packet.keycode[0];
         }
         
         if(part_Idex > 0){
@@ -247,10 +247,13 @@ int main()
           part_Idex -= 1;
 
         }
-        if(colnum == 64){
+        if(colnum == 64 && rownum == 21){
           colnum = 0;
           rownum = 22;
         }
+      }
+      else if((packet.keycode[0] == 0x0) && (packet.keycode[1] == 0x0)){
+        key1save = 0;
       }
       
 
@@ -291,9 +294,6 @@ void *network_thread_f(void *ignored)
     
     if(strlen(recvBuf) > 64){
       fbclean(128,rownum,0);
-    }
-    else if(strlen(recvBuf) > 128){
-      fbclean(192,rownum,0);
     }
     else{
       fbclean(64,rownum,0);

@@ -141,7 +141,8 @@ int main()
       sprintf(keystate, "%02x %02x %02x", packet.modifiers, packet.keycode[0],
 	      packet.keycode[1]);
       printf("%s\n", keystate);
-      if(packet.keycode[0] == 0x28){
+      printf("%d\n",colnum);
+      if(packet.keycode[0] == 0x28){//enter
         while(part_Idex > 0){
           message_to_send[charIdex] = part_message[part_Idex-1];
           charIdex+=1;

@@ -130,7 +130,7 @@ int main()
   char part_message[128];
   int part_Idex = 0;
   int disprow = 13;
-  char key1save[2];
+  int key1save;
   for (;;) {
     
     fbputchar('_',rownum, colnum);
@@ -219,6 +219,7 @@ int main()
         }
         else if(packet.keycode[0] != key1save){
           acsii = convert_to_ascii(packet.keycode[0], packet.modifiers, rownum, colnum);
+          key1save = 0;
         }
         colnum+=1;
         message_to_send[charIdex] = acsii;

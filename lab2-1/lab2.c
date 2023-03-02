@@ -207,6 +207,10 @@ int main()
             colnum =63;
             rownum -=1;
           }
+          else if(colnum < 0 && rownum == 23){
+            colnum = 63;
+            rownum -=1;
+          }
 
         }
         
@@ -252,11 +256,18 @@ int main()
           colnum = 0;
           rownum = 22;
         }
+        else if(colnum == 64 && rownum == 22){
+          colnum = 0;
+          rownum = 23;
+        }
       }
       else if((packet.keycode[0] == 0x0) && (packet.keycode[1] == 0x0)){
         key1save = 0;
       }
       
+      if(rownum != 23){
+        fbputchar('*',23,0);
+      }
 
       //fbputs(keystate, 6, 0);
       

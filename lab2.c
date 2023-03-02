@@ -271,6 +271,7 @@ void *network_thread_f(void *ignored)
     }
     recvBuf[n] = '\0';
     printf("%s", recvBuf);
+    printf("%d",n);
     if(strlen(recvBuf) > 64){
       fbclean(128,rownum,0);
     }

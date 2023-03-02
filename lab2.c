@@ -270,8 +270,8 @@ void *network_thread_f(void *ignored)
       rownum = 1;
     }
     recvBuf[n] = '\0';
-    printf("%s", recvBuf);
-    printf("%d",n);
+    printf("%s\n", recvBuf);
+    printf("%d\n",recvBuf[n-1]);
     if(strlen(recvBuf) > 64){
       fbclean(128,rownum,0);
     }
@@ -432,4 +432,3 @@ int convert_to_ascii(uint8_t keycode0, uint8_t modifier,int row, int col){
     return c;
 
 }
-

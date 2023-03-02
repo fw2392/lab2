@@ -163,13 +163,18 @@ int main()
       else if(packet.keycode[0] == 0x2A){//back space
         if(rownum >= 21){
           fbputchar(' ',rownum,colnum);
-          int newcol = colnum;
-          int new = part_Idex;
-          while(new > 0){
-            fbputchar(part_message[new-1],rownum,newcol);
-            new = new -1;
-            newcol = newcol + 1;
-          } 
+          if(part_Idex > 0){
+            int newcol = colnum;
+            int new = part_Idex-1;
+            fbputchar(' ',rownum,colnum+new);
+            while(new > 0){
+              fbputchar(part_message[new-1],rownum,newcol);
+              new = new -1;
+              newcol = newcol + 1;
+            } 
+
+
+          }       
           colnum = colnum - 1;
           charIdex = charIdex - 1;
           

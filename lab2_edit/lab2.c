@@ -280,7 +280,7 @@ void *network_thread_f(void *ignored)
   int rownum = 1;
   /* Receive data */
   while ( (n = read(sockfd, &recvBuf, BUFFER_SIZE - 1)) > 0 ) {
-    if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64))){
+    if(rownum == 12 ||((rownum == 11) && (strlen(recvBuf) > 64)) || (rownum == 10 && strlen(recvBuf) > 128)){
       rownum = 1;
     }
     if(recvBuf[n-1] == 10){
@@ -291,6 +291,9 @@ void *network_thread_f(void *ignored)
     
     if(strlen(recvBuf) > 64){
       fbclean(128,rownum,0);
+    }
+    else if(strlen(recvBuf) > 128){
+      fbclean(192,rownum,0);
     }
     else{
       fbclean(64,rownum,0);

@@ -141,7 +141,8 @@ int main()
       sprintf(keystate, "%02x %02x %02x", packet.modifiers, packet.keycode[0],
 	      packet.keycode[1]);
       printf("%s\n", keystate);
-      if(packet.keycode[0] == 0x28){
+      print("%d\n",colnum);
+      if(packet.keycode[0] == 0x28){//enter
         while(part_Idex > 0){
           message_to_send[charIdex] = part_message[part_Idex-1];
           charIdex+=1;
@@ -225,7 +226,7 @@ int main()
         }
       
       }
-      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23 && colnum < 64) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
+      else if (((packet.keycode[0] != 0x0) || (packet.keycode[1]!= 0x0)) && (rownum < 23 && charIdex < 128) && (packet.keycode[0]!= 43 && packet.keycode[0]!= 57)){
         
         if((packet.keycode[0] != 0x0) && (packet.keycode[1]!= 0x0)){
           key1save = packet.keycode[0];
@@ -239,6 +240,7 @@ int main()
           colnum+=1;
           message_to_send[charIdex] = acsii;
           charIdex+=1;
+          key1save = packet.keycode[0];
         }
         
         if(part_Idex > 0){

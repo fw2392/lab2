@@ -216,14 +216,18 @@ int main()
         if((packet.keycode[0] != 0x0) && (packet.keycode[1]!= 0x0)){
           key1save = packet.keycode[0];
           acsii = convert_to_ascii(packet.keycode[1], packet.modifiers, rownum, colnum);
+          colnum+=1;
+          message_to_send[charIdex] = acsii;
+          charIdex+=1;
         }
         else if(packet.keycode[0] != key1save){
           acsii = convert_to_ascii(packet.keycode[0], packet.modifiers, rownum, colnum);
           key1save = 0;
+          colnum+=1;
+          message_to_send[charIdex] = acsii;
+          charIdex+=1;
         }
-        colnum+=1;
-        message_to_send[charIdex] = acsii;
-        charIdex+=1;
+        
         if(part_Idex > 0){
           part_message[part_Idex-1] = '\0';
           part_Idex -= 1;

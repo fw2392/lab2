@@ -25,7 +25,7 @@ void print_background_color() {
       perror("ioctl(VGA_BALL_READ_BACKGROUND) failed");
       return;
   }
-  printf("%02x %02x %02x\n %hu %hu\n",
+  printf("%hu %hu %hu\n %hu %hu\n",
 	 vla.background.red, vla.background.green, vla.background.blue, vla.pos.x, vla.pos.y );
 }
 

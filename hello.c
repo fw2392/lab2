@@ -22,6 +22,7 @@ int vga_ball_fd;
 uint8_t endpoint_address;
 struct libusb_device_handle *keyboard;
 /* Read and print the background color */
+
 vga_ball_color_t print_background_color() {
   vga_ball_arg_t vla;
   
@@ -30,7 +31,7 @@ vga_ball_color_t print_background_color() {
       return vla.background;
   }
   printf("%02x %02x %02x\n",
-	 vla.background.red, vla.background.green, vla.background.blue);
+	 vla.background.red, vla.background.green, vla.background.blue, vla.background.ot);
    return vla.background;
 }
 
@@ -77,8 +78,6 @@ void cal_angleInput(float x, float y, float z, float theta1_0, float theta2_0, f
     *output_theta1 = round(theta1_input);
     *output_theta2 = round(theta2_input);
     *output_theta3 = round(theta3_input);
-
-
 }
 
 int main()
@@ -181,7 +180,7 @@ int main()
                   curpos.ot = 20;
                }
                else if(prepos.ot == 20){
-                  curpos.ot = 20;
+                  curpos.ot = 70;
                }
                printf("Key %02x pressed\n",packet.keycode[0]);                   
             }

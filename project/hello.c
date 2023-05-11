@@ -194,8 +194,8 @@ int main()
          if(curpos.ot > 70){
           curpos.ot = 70;
          }
-         else if(curpos.ot < 40){
-          curpos.ot = 40;
+         else if(curpos.ot < 20){
+          curpos.ot = 20;
          }
 
          set_background_color(&curpos);

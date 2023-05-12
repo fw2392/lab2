@@ -1,13 +1,6 @@
-/*
- * Userspace program that communicates with the vga_ball device driver
- * through ioctls
- *
- * Stephen A. Edwards
- * Columbia University
- */
 
 #include <stdio.h>
-#include "vga_ball.h"
+#include "servo_control.h"
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,56 +11,72 @@
 #include <stdlib.h>
 #include <math.h>
 
-int vga_ball_fd;
+
+int servos_fd;
 uint8_t endpoint_address;
 struct libusb_device_handle *keyboard;
 /* Read and print the background color */
+typedef struct {
+	float t0, t1, t2;
+} theta_t;
 
-vga_ball_color_t print_background_color() {
-  vga_ball_arg_t vla;
+servos_t print_servo_angle() {
+  control_servo_t vla;
   
-  if (ioctl(vga_ball_fd, VGA_BALL_READ_BACKGROUND, &vla)) {
-      perror("ioctl(VGA_BALL_READ_BACKGROUND) failed");
-      return vla.background;
+  if (ioctl(servos_fd, READ_SERVO, &vla)) {
+      perror("ioctl(READ_SERVO) failed");
+      return vla.all_servos;
   }
   printf("%02x %02x %02x %02x\n",
-	 vla.background.red, vla.background.green, vla.background.blue, vla.background.ot);
-   return vla.background;
+	 vla.all_servos.s0, vla.all_servos.s1, vla.all_servos.s2, vla.all_servos.ot);
+   return vla.all_servos;
 }
 
 /* Set the background color */
-void set_background_color(const vga_ball_color_t *c)
+void set_servo_angle(const servos_t *c)
 {
-  vga_ball_arg_t vla;
-  vla.background = *c;
-  if (ioctl(vga_ball_fd, VGA_BALL_WRITE_BACKGROUND, &vla)) {
-      perror("ioctl(VGA_BALL_SET_BACKGROUND) failed");
+  control_servo_t vla;
+  vla.all_servos = *c;
+  if (ioctl(servos_fd, WRITE_to_SERVO, &vla)) {
+      perror("ioctl(SERVOS_SET_BACKGROUND) failed");
       return;
   }
 }
-float cal_joint_angle(float x, float y, float z, float l1, float l2) {
+theta_t cal_joint_angle(float x, float y, float z) {
+   theta_t thetas;
+    float l1 = 0.135;
+    float l2 = 0.209;
     z = z - 0.0955;
-    float theta1 = 202 - acosf((powf(l1, 2) + powf(l2, 2) - powf(y, 2) - powf(z, 2)) / (2 * l1 * l2)) - atanf(z / (y + 0.000001)) - acosf((powf(y, 2) + powf(z, 2) + powf(l2, 2) - powf(l1, 2)) / (2 * l2 * sqrtf(powf(y, 2) + powf(z, 2))));
+    float thetas.t0 = 202 - acosf((powf(l1, 2) + powf(l2, 2) - powf(y, 2) - powf(z, 2)) / (2 * l1 * l2)) - \
+    atanf(z / (y + 0.000001)) - acosf((powf(y, 2) + powf(z, 2) + powf(l2, 2) - powf(l1, 2)) / (2 * l2 * sqrtf(powf(y, 2) + powf(z, 2))));
 
-    float theta2 = atanf(z / y) + acosf((powf(y, 2) + powf(z, 2) + powf(l2, 2) - powf(l1, 2)) / (2 * l2 * sqrtf(powf(y, 2) + powf(z, 2))));
+    float thetas.t1 = atanf(z / y) + acosf((powf(y, 2) + powf(z, 2) + powf(l2, 2) - powf(l1, 2)) / (2 * l2 * sqrtf(powf(y, 2) + powf(z, 2))));
 
-    float theta3 = atanf(y / (x + 0.000001));
-
-    return theta1, theta2, theta3;
+    float thetas.t2 = atanf(y / (x + 0.000001));
+    printf("before");
+    printf("%f %f %f\n",thetas.t0, thetas.t1, theta.t0);
+    return thetas;
 }
 
-void cal_angleInput(float x, float y, float z, float theta1_0, float theta2_0, float theta3_0, float initial_angle, uint8_t *output_theta1, uint8_t *output_theta2, uint8_t * output_theta3) {
-    float theta1, theta2, theta3,theta1_input,theta2_input,theta3_input;
-    theta1, theta2, theta3 = cal_joint_angle(x, y, z, 0.135, 0.209);
-    float delta_theta1 = theta1 - theta1_0;
-    float delta_theta2 = theta2 - theta2_0;
+servos_t cal_angleInput(float x, float y, float z) {
+    float theta1_0 = 22;
+    float theta2_0 = 113;
+    float theta3_0 = 90;
+    float initial_angle = 135;
+    float theta1_input,theta2_input,theta3_input;
+    theta_t thetas;
+    thetas = cal_joint_angle(x, y, z);
+    float delta_theta1 = thetas.t0 - theta1_0;
+    float delta_theta2 = thetas.t1 - theta2_0;
     float delta_theta3;
     if (theta3 > 0) {
-        delta_theta3 = theta3 - theta3_0;
+        delta_theta3 = thetas.t2 - theta3_0;
     }
     else {
-        delta_theta3 = theta3 + theta3_0;
+        delta_theta3 = thetas.t2 + theta3_0;
     }
+    printf("after");
+    printf("%f %f %f\n",thetas.t0, thetas.t1, theta.t0);
     theta1_input = initial_angle - delta_theta1;
     theta2_input = initial_angle - delta_theta2;
     theta3_input = initial_angle + delta_theta3;
@@ -75,9 +84,13 @@ void cal_angleInput(float x, float y, float z, float theta1_0, float theta2_0, f
       theta3_input = 255;
     }
    
-    *output_theta1 = round(theta1_input);
-    *output_theta2 = round(theta2_input);
-    *output_theta3 = round(theta3_input);
+    // *output_theta1 = round(theta1_input);
+    // *output_theta2 = round(theta2_input);
+    // *output_theta3 = round(theta3_input);
+    servos_t angle;
+    angle.s0 = round(theta1_input);
+    angle.s1 = round(theta2_input);
+    angle.s2 = round(theta3_input);
 }
 
 int main()
@@ -87,8 +100,9 @@ int main()
    int transferred;
    char keystate[12] = "00 00 00";
    char prev_keystate[12] = "00 00 00";
-   vga_ball_color_t prepos;
-   vga_ball_color_t curpos;
+   servos_t prepos;
+   servos_t curpos;
+   char input[200];
 
   /* Open the keyboard */
    if ( (keyboard = openkeyboard(&endpoint_address)) == NULL ) 
@@ -96,14 +110,14 @@ int main()
       fprintf(stderr, "Did not find a keyboard\n");
       exit(1);
    }
-  vga_ball_arg_t vla;
+  control_servo_t vla;
   int i;
   static const char filename[] = "/dev/vga_ball";
 
 
   printf("Robot arm Userspace program started\n");
 
-  if ( (vga_ball_fd = open(filename, O_RDWR)) == -1) {
+  if ( (servos_fd = open(filename, O_RDWR)) == -1) {
     fprintf(stderr, "could not open %s\n", filename);
     return -1;
   }
@@ -118,17 +132,31 @@ int main()
          printf("Keycode: %s\n", keystate);
          printf("Previous Keycode: %s\n", prev_keystate);
 
-/////////////////////////////////////////////////////////////////////
-// Set custom key here, triggered on press
-/////////////////////////////////////////////////////////////////////
-         prepos = print_background_color();
-         if(packet.keycode[0]== 26) // Set wanted keycode w
+         prepos = print_servo_angle();
+         if(packet.keycode[0] == 29)// z reset the position
+         {
+          if (prev_keystate[0] == '0' && prev_keystate[1] == '0'){
+            printf("Key %02x pressed\n",packet.keycode[0]); 
+            curpos.s0 = 135;
+            curpos.s1 = 135;
+            curpos.s2 = 135;
+            curpos.ot = 20;
+          }
+         }
+
+         else if(packet.keycode[0]== 26) // Set wanted keycode w
          {
             if (prev_keystate[0] == '0' && prev_keystate[1] == '0')
             {
                // Do something here
-               printf("Key %02x pressed\n",packet.keycode[0]);        
-               curpos.red = prepos.red - 5;             
+               printf("Key %02x pressed\n",packet.keycode[0]); 
+               if(prepos.s0 == 0){
+                curpos.s0 == prepos.s0;
+               }
+               else{
+                curpos.s0 = prepos.s0 - 5;
+               }       
+                            
             }
              
          }
@@ -137,15 +165,21 @@ int main()
             {
                // Do something here
                printf("Key %02x pressed\n",packet.keycode[0]);        
-               curpos.red = prepos.red + 5;             
+               curpos.s0 = prepos.s0 + 5;             
             }
          }
          else if(packet.keycode[0] == 4){//a
             if (prev_keystate[0] == '0' && prev_keystate[1] == '0')
             {
                // Do something here
-               printf("Key %02x pressed\n",packet.keycode[0]);        
-               curpos.blue = prepos.blue - 5;             
+               printf("Key %02x pressed\n",packet.keycode[0]); 
+               if (prepos.s2 == 0){
+                curpos.s2 = prepos.s2;
+               }
+               else{
+                curpos.s2 = prepos.s2 - 5;
+               }       
+                            
             }
          }
          else if(packet.keycode[0] == 7){//d
@@ -153,15 +187,21 @@ int main()
             {
                // Do something here
                printf("Key %02x pressed\n",packet.keycode[0]);        
-               curpos.blue = prepos.blue + 5;             
+               curpos.s2 = prepos.s2 + 5;             
             }
          }
          else if(packet.keycode[0] == 20){//q
             if (prev_keystate[0] == '0' && prev_keystate[1] == '0')
             {
                // Do something here
-               printf("Key %02x pressed\n",packet.keycode[0]);        
-               curpos.green = prepos.green - 5;             
+               printf("Key %02x pressed\n",packet.keycode[0]);
+               if(prepos.s1 == 0){
+                curpos.s1 = prepos.s1;
+               }    
+               else{
+                curpos.s1 = prepos.s1 - 5;  
+               }    
+                          
             }
          }
          else if(packet.keycode[0] == 8){//e
@@ -169,7 +209,7 @@ int main()
             {
                // Do something here
                printf("Key %02x pressed\n",packet.keycode[0]);        
-               curpos.green = prepos.green + 5;           
+               curpos.s1 = prepos.s1 + 5;           
             }
          }
          else if(packet.keycode[0] == 44){//space
@@ -185,23 +225,41 @@ int main()
                printf("Key %02x pressed\n",packet.keycode[0]);                   
             }
          }
-         if (curpos.red > 140){
-          curpos.red = 140;
+         else if(packet.keycode[0] == 14){
+          printf("Enter the position and seperate by space like x y z: ");
+          memset(input, 0, sizeof(input));
+          fget(input,200,stdin);
+          char *tmp = strtok(input,"\n");
+          char *first_pos = strtok(tmp," ");
+          char *second_pos = strtok(NULL," ");
+          char *third_pos = strtok(NULL," ");
+          float first_float = atof(first_pos);
+          float second_float = atof(second_pos);
+          float third_float = atof(third_pos);
+          curpos = cal_angleInput(first_float,second_float,third_float);
+          printf("After algorithm\n");
+          printf("%02x %02x %02x %02x\n",
+	 curpos.s0, curpos.s1, curpos.s2, curpos.ot);
          }
-         if(curpos.green > 190){
-          curpos.green = 190;
+         if (curpos.s0 > 150){
+          curpos.s0 = 150;
          }
+         
+         if(curpos.s1 > 190){
+          curpos.s1 = 190;
+         }
+
          if(curpos.ot > 70){
           curpos.ot = 70;
          }
-         else if(curpos.ot < 40){
-          curpos.ot = 40;
+         else if(curpos.ot < 20){
+          curpos.ot = 20;
          }
-
-         set_background_color(&curpos);
+         
+         set_servo_angle(&curpos);
       }
    }
   
-  printf("VGA BALL Userspace program terminating\n");
+  printf("Robot ARM Userspace program terminating\n");
   return 0;
 }
